@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/ui_utils.dart';
+import '../features/home/presentation/pages/home_page.dart';
+import '../features/transfer/presentation/pages/transfer_page.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -11,13 +13,12 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
-  // Estas son las 5 áreas de contenido que pide tu documento
-  final List<Widget> _screens = [
-    const Center(child: Text("Pantalla de Inicio")),
+  late final List<Widget> _screens = [
+    HomePage(onTransferir: () => onTransferirTap()),
     const Center(child: Text("Inscribir / Desinscribir")),
     const Center(child: Text("Saldo Actual")),
     const Center(child: Text("Historial de Movimientos")),
-    const Center(child: Text("Formulario de Transferencia")),
+    const TransferPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -26,16 +27,22 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
+  // Método público para que HomePage pueda navegar al tab de transferencias
+  void onTransferirTap() {
+    setState(() {
+      _selectedIndex = 4;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Barra superior con logo/título (Requerimiento AM1)
       appBar: AppBar(
         title: const Text("CUC Pagos Móviles"),
-        backgroundColor: const Color(0xFF003366), // Azul institucional CUC
+        backgroundColor: const Color(0xFF003366),
         leading: const Icon(
           Icons.account_balance,
-          color: Color.fromARGB(255, 255, 255, 255),
+          color: Colors.white,
         ),
         actions: [
           IconButton(
@@ -47,23 +54,18 @@ class _MainLayoutState extends State<MainLayout> {
                 "¿Desea limpiar sus credenciales locales?",
               );
               if (confirm) {
-                // Aquí limpiarás el secure storage en el siguiente paso
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
           ),
         ],
       ),
-
-      // Área de contenido dinámico
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: _screens[_selectedIndex],
       ),
-
-      // Bottom Tab con todas las opciones solicitadas
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Permite más de 3 iconos
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         selectedItemColor: const Color(0xFF003366),
         unselectedItemColor: Colors.grey,

@@ -33,20 +33,16 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-        // GUARDAR LOS 4 VALORES (TAL CUAL AM2)
+              // DEBUG: Ver qué viene en data
+        print('RESPONSE DATA: $data');
+        print('nombreCompleto: ${data['nombreCompleto']}');
+
+        // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
-        await _storage.write(
-          key: 'refresh_token',
-          value: loginData.refreshToken,
-        );
-        await _storage.write(
-          key: 'expires_in',
-          value: loginData.expiresIn.toString(),
-        );
-        await _storage.write(
-          key: 'usuarioID',
-          value: loginData.usuarioID.toString(),
-        );
+        await _storage.write(key: 'refresh_token', value: loginData.refreshToken);
+        await _storage.write(key: 'expires_in', value: loginData.expiresIn.toString());
+        await _storage.write(key: 'usuarioID', value: loginData.usuarioID.toString());
+        await _storage.write(key: 'nombre_completo', value: data['nombreCompleto']?.toString() ?? '');
 
         return loginData;
       } else {
@@ -66,5 +62,6 @@ class AuthService {
     await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'expires_in');
     await _storage.delete(key: 'usuarioID');
+    await _storage.delete(key: 'nombre_completo');
   }
 }
