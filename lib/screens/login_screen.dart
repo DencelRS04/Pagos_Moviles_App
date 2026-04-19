@@ -4,7 +4,7 @@ import '../services/auth_service.dart';
 import '../widgets/ui_utils.dart';
 
 class LoginScreen extends StatefulWidget {
-  final String? message; // Para el mensaje de "Por favor inicie sesión..."
+  final String? message;
   const LoginScreen({super.key, this.message});
 
   @override
@@ -17,7 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   final _storage = const FlutterSecureStorage();
 
-  // Dominio parametrizable (AM2)
   final String dominioRequerido = "cuc.cr";
   bool _recordarme = false;
   bool _isLoading = false;
@@ -25,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarDatosGuardados(); // Carga el correo si fue recordado
+    _cargarDatosGuardados();
 
     if (widget.message != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -34,7 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Lee el correo si se marcó "Recordarme" anteriormente
   void _cargarDatosGuardados() async {
     String? emailGuardado = await _storage.read(key: 'remembered_email');
     if (emailGuardado != null) {
@@ -49,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Validación TAL CUAL: email con dominio y contraseña no vacía
     if (email.isEmpty ||
         !email.endsWith('@$dominioRequerido') ||
         password.isEmpty) {
@@ -66,69 +63,47 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final result = await _authService.login(email, password);
       if (result != null) {
-        print("BITÁCORA: Login exitoso para $email");
         if (_recordarme) {
           await _storage.write(key: 'remembered_email', value: email);
         } else {
           await _storage.delete(key: 'remembered_email');
         }
-
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
-      print("BITÁCORA: Login fallido para $email. Razón: $e");
       UIUtils.showMsg(context, e.toString(), isError: true);
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  // --- COMIENZA LA MEJORA DE INTERFAZ ---
-
   @override
   Widget build(BuildContext context) {
-    // Definimos colores institucionales para consistencia visual (AM1)
-    const colorPrimario = Color(0xFF003366); // Azul CUC
-    const colorAcento = Color(0xFFF57C00); // Naranja para resaltar el botón
+    const colorPrimario = Color(0xFF003366);
+    const colorAcento = Color(0xFFF57C00);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 1. Fondo Bonito: Imagen sutil con overlay azul
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                  'assets/images/background_pattern.png',
-                ), // Puedes agregar un patrón de fondo opcional
-                fit: BoxFit.cover,
-                opacity: 0.05, // Muy sutil
-              ),
-            ),
-          ),
+          // FONDO: Solo gradiente azul para evitar errores de assets faltantes
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  colorPrimario.withOpacity(0.9),
-                  colorPrimario.withOpacity(0.95),
-                ],
+                colors: [colorPrimario, colorPrimario.withOpacity(0.8)],
               ),
             ),
           ),
 
-          // 2. Contenido Principal Centrado
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // --- EL LOGO BONITO (AM2) ---
-                  // Usamos Hero para una transición suave si lo usas en otra pantalla
+                  // LOGO CIRCULAR
                   Hero(
                     tag: 'logo_cuc',
                     child: Container(
@@ -144,33 +119,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
+                      child: const Icon(
+                        Icons
+                            .account_balance, // Icono de respaldo si no hay imagen
+                        size: 80,
+                        color: colorPrimario,
+                      ),
+                      /* // Descomenta esto cuando ya tengas el logo en assets/images/
                       child: Image.asset(
-                        'assets/images/logo_cuc.png', // Tu logo descargado
+                        'assets/images/logo_cuc.png',
                         height: 100,
                         width: 100,
                         fit: BoxFit.contain,
                       ),
+                      */
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   const Text(
-                    "Pagos Móviles",
+                    "DAYJA BANK",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 2.0,
                     ),
                   ),
                   const SizedBox(height: 40),
 
-                  // --- CONTENEDOR FLOTANTE DEL FORMULARIO ---
+                  // TARJETA DEL FORMULARIO
                   Card(
                     elevation: 12,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    color: Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
@@ -186,11 +168,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 25),
 
-                          // --- TEXTFIELDS ESTILIZADOS ---
+                          // EMAIL
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(fontSize: 15),
                             decoration: InputDecoration(
                               labelText: 'Correo (@$dominioRequerido)',
                               prefixIcon: const Icon(
@@ -203,16 +184,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                              ),
                             ),
                           ),
                           const SizedBox(height: 18),
+
+                          // PASSWORD
                           TextFormField(
                             controller: _passwordController,
                             obscureText: true,
-                            style: const TextStyle(fontSize: 15),
                             decoration: InputDecoration(
                               labelText: 'Contraseña',
                               prefixIcon: const Icon(
@@ -225,21 +204,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                              ),
                             ),
                           ),
-                          const SizedBox(height: 10),
 
-                          // --- CHECKBOX OPTIMIZADO ---
+                          // RECORDARME
                           CheckboxListTile(
                             title: const Text(
                               "Recordarme",
-                              style: TextStyle(
-                                color: colorPrimario,
-                                fontSize: 14,
-                              ),
+                              style: TextStyle(fontSize: 14),
                             ),
                             value: _recordarme,
                             onChanged: (val) =>
@@ -247,11 +219,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             controlAffinity: ListTileControlAffinity.leading,
                             contentPadding: EdgeInsets.zero,
                             activeColor: colorAcento,
-                            dense: true,
                           ),
-                          const SizedBox(height: 25),
+                          const SizedBox(height: 20),
 
-                          // --- BOTÓN ACEPTAR RESALTADO Y BONITO ---
+                          // BOTÓN ACEPTAR
                           _isLoading
                               ? const Center(
                                   child: CircularProgressIndicator(
@@ -264,11 +235,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: ElevatedButton(
                                     onPressed: _handleLogin,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          colorAcento, // Naranja para resaltar
+                                      backgroundColor: colorAcento,
                                       foregroundColor: Colors.white,
-                                      elevation: 6,
-                                      shadowColor: colorAcento.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(15),
                                       ),
@@ -276,7 +244,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text(
                                       "ACEPTAR",
                                       style: TextStyle(
-                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1.5,
                                       ),
