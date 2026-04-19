@@ -6,7 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/login_response.dart';
 
 class AuthService {
-  final String baseUrl = "https://10.0.2.2:7143/auth";
+  // Esta es la URL que debes usar para el login
+  final String baseUrl = "https://10.0.2.2:7000/gateway/auth";
   final _storage = const FlutterSecureStorage();
 
   http.Client get _httpClient {
@@ -33,16 +34,28 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-              // DEBUG: Ver qué viene en data
+        // DEBUG: Ver qué viene en data
         print('RESPONSE DATA: $data');
         print('nombreCompleto: ${data['nombreCompleto']}');
 
         // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
-        await _storage.write(key: 'refresh_token', value: loginData.refreshToken);
-        await _storage.write(key: 'expires_in', value: loginData.expiresIn.toString());
-        await _storage.write(key: 'usuarioID', value: loginData.usuarioID.toString());
-        await _storage.write(key: 'nombre_completo', value: data['nombreCompleto']?.toString() ?? '');
+        await _storage.write(
+          key: 'refresh_token',
+          value: loginData.refreshToken,
+        );
+        await _storage.write(
+          key: 'expires_in',
+          value: loginData.expiresIn.toString(),
+        );
+        await _storage.write(
+          key: 'usuarioID',
+          value: loginData.usuarioID.toString(),
+        );
+        await _storage.write(
+          key: 'nombre_completo',
+          value: data['nombreCompleto']?.toString() ?? '',
+        );
 
         return loginData;
       } else {
