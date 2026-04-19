@@ -25,7 +25,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
   bool _cargando = true;
   String _errorCarga = '';
   bool _procesando = false;
-  int _usuarioID = 0;
+  bool _modoInscripcion = true;
   String _identificacion = '';
   String _clienteId = '';
 
@@ -67,10 +67,8 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         return;
       }
 
-      _usuarioID = int.tryParse(usuarioIdStr) ?? 0;
       _identificacion = identificacion ?? '';
       _clienteId = clienteId ?? '';
-
 
       final client = _httpClient;
       final resp = await client.get(
@@ -106,14 +104,17 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
     }
   }
 
-  Future<void> _inscribir() async {
+  Future<void> _procesar() async {
     if (!_formKey.currentState!.validate()) return;
     if (_cuentaSeleccionada == null) return;
 
+    final accion = _modoInscripcion ? 'inscripción' : 'desinscripción';
+    final verbo = _modoInscripcion ? 'asociar' : 'desasociar';
+
     final confirm = await UIUtils.showConfirmDialog(
       context,
-      'Confirmar inscripción',
-      '¿Desea asociar el teléfono ${_telefonoCtrl.text} con la cuenta ${_cuentaSeleccionada!.numeroCuenta}?',
+      'Confirmar $accion',
+      '¿Desea $verbo el teléfono ${_telefonoCtrl.text} con la cuenta ${_cuentaSeleccionada!.numeroCuenta}?',
     );
     if (!confirm) return;
 
@@ -129,10 +130,14 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       );
 
       final bodyJson = jsonEncode(request.toJson());
-
       final client = _httpClient;
+
+      final url = _modoInscripcion
+          ? 'https://10.0.2.2:7154/pagomovil/inscribir'
+          : 'https://10.0.2.2:7000/gateway/admin/core/accounts/unsubscribe';
+
       final resp = await client.post(
-        Uri.parse('https://10.0.2.2:7154/pagomovil/inscribir'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -146,11 +151,14 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         _telefonoCtrl.clear();
         setState(() => _cuentaSeleccionada = null);
         if (mounted) {
-          UIUtils.showMsg(context, 'Inscripción exitosa');
+          UIUtils.showMsg(
+            context,
+            _modoInscripcion ? 'Inscripción exitosa' : 'Desinscripción exitosa',
+          );
         }
       } else {
         final mensaje =
-            data['descripcion'] ?? 'Error al procesar la inscripción';
+            data['descripcion'] ?? 'Error al procesar la $accion';
         if (mounted) {
           UIUtils.showMsg(context, mensaje, isError: true);
         }
@@ -199,17 +207,57 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Inscribirse en Pagos Móviles',
+              'Pagos Móviles',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF003366),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Toggle Inscribir / Desinscribir
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: true,
+                  label: Text('Inscribirse'),
+                  icon: Icon(Icons.person_add),
+                ),
+                ButtonSegment(
+                  value: false,
+                  label: Text('Desinscribirse'),
+                  icon: Icon(Icons.person_remove),
+                ),
+              ],
+              selected: {_modoInscripcion},
+              onSelectionChanged: (sel) {
+                setState(() {
+                  _modoInscripcion = sel.first;
+                  _telefonoCtrl.clear();
+                  _cuentaSeleccionada = null;
+                });
+              },
+              style: ButtonStyle(
+                foregroundColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? Colors.white
+                      : const Color(0xFF003366),
+                ),
+                backgroundColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? const Color(0xFF003366)
+                      : Colors.transparent,
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
-            const Text(
-              'Asocia tu número de teléfono y cuenta bancaria para usar el servicio.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+
+            Text(
+              _modoInscripcion
+                  ? 'Asocia tu número de teléfono y cuenta bancaria para usar el servicio.'
+                  : 'Desasocia tu número de teléfono y cuenta bancaria del servicio.',
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 24),
 
@@ -233,7 +281,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
               )
             else ...[
               DropdownButtonFormField<AccountItem>(
-                value: _cuentaSeleccionada,
+                initialValue: _cuentaSeleccionada,
                 decoration: InputDecoration(
                   labelText: 'Cuenta bancaria',
                   prefixIcon: const Icon(Icons.account_balance),
@@ -285,7 +333,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _procesando ? null : _inscribir,
+                  onPressed: _procesando ? null : _procesar,
                   icon: _procesando
                       ? const SizedBox(
                           width: 20,
@@ -295,9 +343,15 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.person_add),
+                      : Icon(
+                          _modoInscripcion
+                              ? Icons.person_add
+                              : Icons.person_remove,
+                        ),
                   label: Text(
-                    _procesando ? 'Procesando...' : 'Inscribirse',
+                    _procesando
+                        ? 'Procesando...'
+                        : (_modoInscripcion ? 'Inscribirse' : 'Desinscribirse'),
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
