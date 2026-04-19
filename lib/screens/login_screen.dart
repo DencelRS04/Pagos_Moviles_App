@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // --- MANTENEMOS LA LÓGICA EXACTA (AM2) ---
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -28,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _cargarDatosGuardados(); // Carga el correo si fue recordado
 
-    // Si viene un mensaje por redirección, lo mostramos (AM2)
     if (widget.message != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         UIUtils.showMsg(context, widget.message!, isError: true);
