@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/ui_utils.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/transfer/presentation/pages/transfer_page.dart';
+import '../features/subscription/presentation/pages/register_wallet_page.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -15,7 +16,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   late final List<Widget> _screens = [
     HomePage(onTransferir: () => onTransferirTap()),
-    const Center(child: Text("Inscribir / Desinscribir")),
+    const RegisterWalletPage(),
     const Center(child: Text("Saldo Actual")),
     const Center(child: Text("Historial de Movimientos")),
     const TransferPage(),
