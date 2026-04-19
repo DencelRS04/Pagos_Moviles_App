@@ -44,6 +44,7 @@ class AuthService {
         await _storage.write(key: 'usuarioID', value: loginData.usuarioID.toString());
         await _storage.write(key: 'nombre_completo', value: data['nombreCompleto']?.toString() ?? '');
         await _storage.write(key: 'identificacion', value: data['identificacion']?.toString() ?? '');
+        await _storage.write(key: 'clienteId', value: data['clienteId']?.toString() ?? '');
 
         return loginData;
       } else {
@@ -65,5 +66,6 @@ class AuthService {
     await _storage.delete(key: 'usuarioID');
     await _storage.delete(key: 'nombre_completo');
     await _storage.delete(key: 'identificacion');
+    await _storage.delete(key: 'clienteId');
   }
 }

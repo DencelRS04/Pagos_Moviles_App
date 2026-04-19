@@ -27,6 +27,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
   bool _procesando = false;
   int _usuarioID = 0;
   String _identificacion = '';
+  String _clienteId = '';
 
   http.Client get _httpClient {
     final ioc = HttpClient();
@@ -56,6 +57,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       final token = await _storage.read(key: 'access_token');
       final usuarioIdStr = await _storage.read(key: 'usuarioID');
       final identificacion = await _storage.read(key: 'identificacion');
+      final clienteId = await _storage.read(key: 'clienteId');
 
       if (token == null || usuarioIdStr == null) {
         setState(() {
@@ -67,13 +69,14 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
 
       _usuarioID = int.tryParse(usuarioIdStr) ?? 0;
       _identificacion = identificacion ?? '';
+      _clienteId = clienteId ?? '';
 
-      print('SESION: usuarioID=$_usuarioID | identificacion=$_identificacion');
+      print('SESION: usuarioID=$_usuarioID | identificacion=$_identificacion | clienteId=$_clienteId');
 
       final client = _httpClient;
       final resp = await client.get(
         Uri.parse(
-            'https://10.0.2.2:7191/core/accounts/cliente/$_usuarioID'),
+            'https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
