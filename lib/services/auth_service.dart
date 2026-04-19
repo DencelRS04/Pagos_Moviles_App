@@ -30,10 +30,9 @@ class AuthService {
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final loginData = LoginResponse.fromJson(data);
 
-        // GUARDAR LOS 4 VALORES (TAL CUAL AM2)
         await _storage.write(key: 'access_token', value: loginData.accessToken);
         await _storage.write(
           key: 'refresh_token',
@@ -50,18 +49,19 @@ class AuthService {
 
         return loginData;
       } else {
-        throw data['descripcion'] ?? "Error de autenticación";
+        // Solo mandamos la descripción del error sin el código numérico
+        throw data['descripcion'] ?? "Usuario y/o contraseña incorrectos.";
       }
     } catch (e) {
-      throw "Error de conexión: $e";
+      if (e is SocketException) {
+        throw "No hay conexión con el servidor.";
+      }
+      throw e.toString();
     }
   }
 
   Future<void> logout() async {
-    // Registrar en bitácora (Requerimiento AM2)
-    print("BITÁCORA: Logout realizado. Limpiando credenciales.");
-
-    // Borramos solo los datos de sesión para NO borrar el "Recordarme"
+    print("BITÁCORA: Logout realizado.");
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'expires_in');

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/ui_utils.dart';
+import 'package:pagos_moviles_app/services/auth_service.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -11,13 +11,13 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
-  // Estas son las 5 áreas de contenido que pide tu documento
+  // Lista de pantallas para navegar
   final List<Widget> _screens = [
     const Center(child: Text("Pantalla de Inicio")),
-    const Center(child: Text("Inscribir / Desinscribir")),
-    const Center(child: Text("Saldo Actual")),
-    const Center(child: Text("Historial de Movimientos")),
-    const Center(child: Text("Formulario de Transferencia")),
+    const Center(child: Text("Pantalla Inscribir/Desinscribir")),
+    const Center(child: Text("Pantalla Ver Saldo")),
+    const Center(child: Text("Pantalla ver movimientos")),
+    const Center(child: Text("Pantalla realizar transferencia")),
   ];
 
   void _onItemTapped(int index) {
@@ -28,65 +28,103 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    const colorPrimario = Color(0xFF003366); // Azul CUC
+    const colorAcento = Color(0xFFF57C00); // Naranja
+
     return Scaffold(
-      // Barra superior con logo/título (Requerimiento AM1)
       appBar: AppBar(
-        title: const Text("CUC Pagos Móviles"),
-        backgroundColor: const Color(0xFF003366), // Azul institucional CUC
-        leading: const Icon(
-          Icons.account_balance,
-          color: Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: colorPrimario,
+        elevation: 4,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/logo_cuc.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+        title: const Text(
+          "DAYJA BANK",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              bool confirm = await UIUtils.showConfirmDialog(
-                context,
-                "Cerrar Sesión",
-                "¿Desea limpiar sus credenciales locales?",
-              );
-              if (confirm) {
-                // Aquí limpiarás el secure storage en el siguiente paso
-                Navigator.pushReplacementNamed(context, '/login');
-              }
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () {
+              AuthService().logout();
+              Navigator.pushReplacementNamed(context, '/login');
             },
           ),
         ],
       ),
 
-      // Área de contenido dinámico
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
+      body: Container(
+        decoration: BoxDecoration(color: Colors.grey.withOpacity(0.05)),
         child: _screens[_selectedIndex],
       ),
 
-      // Bottom Tab con todas las opciones solicitadas
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Permite más de 3 iconos
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF003366),
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_add),
-            label: 'Inscribir',
+      // BARRA INFERIOR CON ALINEACIÓN FORZADA Y NOMBRES EXACTOS
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: colorAcento.withOpacity(0.2),
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: colorPrimario,
+              height: 1.1, // Ajusta el espacio entre las dos líneas
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet),
-            label: 'Saldo',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Movimientos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Transferir',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onItemTapped,
+          backgroundColor: Colors.white,
+          elevation: 15,
+          height: 80, // Altura fija para que no se mueva
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: colorAcento),
+              label: 'Inicio\n ', // Agregamos un espacio abajo
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.app_registration_outlined),
+              selectedIcon: Icon(Icons.app_registration, color: colorAcento),
+              label: 'Inscribir/\nDesinscribir',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.account_balance_wallet_outlined),
+              selectedIcon: Icon(
+                Icons.account_balance_wallet,
+                color: colorAcento,
+              ),
+              label: 'Ver saldo\n ', // Agregamos un espacio abajo
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.history_outlined),
+              selectedIcon: Icon(Icons.history, color: colorAcento),
+              label: 'ver\nmovimientos', // Forzamos 2 líneas para alinear
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.send_outlined),
+              selectedIcon: Icon(Icons.send, color: colorAcento),
+              label: 'realizar\ntransferencia',
+            ),
+          ],
+        ),
       ),
     );
   }
