@@ -71,7 +71,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       _identificacion = identificacion ?? '';
       _clienteId = clienteId ?? '';
 
-      print('SESION: usuarioID=$_usuarioID | identificacion=$_identificacion | clienteId=$_clienteId');
 
       final client = _httpClient;
       final resp = await client.get(
@@ -83,12 +82,12 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         },
       );
 
-      print('CUENTAS RESPONSE [${resp.statusCode}]: ${resp.body}');
 
       if (resp.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(resp.body);
+        final body = jsonDecode(resp.body);
+        final List<dynamic> datos = body['datos'] ?? body;
         setState(() {
-          _cuentas = data.map((e) => AccountItem.fromJson(e)).toList();
+          _cuentas = datos.map((e) => AccountItem.fromJson(e)).toList();
           _cargando = false;
         });
       } else {
@@ -130,7 +129,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       );
 
       final bodyJson = jsonEncode(request.toJson());
-      print('INSCRIBIR REQUEST: $bodyJson');
 
       final client = _httpClient;
       final resp = await client.post(
@@ -142,7 +140,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         body: bodyJson,
       );
 
-      print('INSCRIBIR RESPONSE [${resp.statusCode}]: ${resp.body}');
       final data = jsonDecode(resp.body);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {

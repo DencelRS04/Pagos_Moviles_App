@@ -12,7 +12,7 @@ class AccountItem {
   });
 
   factory AccountItem.fromJson(Map<String, dynamic> json) => AccountItem(
-        cuentaID: json['cuentaID'],
+        cuentaID: json['cuentaId'] ?? json['cuentaID'],
         clienteId: json['clienteId'],
         numeroCuenta: json['numeroCuenta'],
         saldo: (json['saldo'] as num).toDouble(),

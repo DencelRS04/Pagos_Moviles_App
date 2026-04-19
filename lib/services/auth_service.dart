@@ -33,10 +33,6 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-              // DEBUG: Ver qué viene en data
-        print('RESPONSE DATA: $data');
-        print('nombreCompleto: ${data['nombreCompleto']}');
-
         // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
         await _storage.write(key: 'refresh_token', value: loginData.refreshToken);
