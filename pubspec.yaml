@@ -20,4 +20,3 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/logo_cuc.png
-    - assets/images/background_pattern.png  
