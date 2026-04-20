@@ -6,7 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/login_response.dart';
 
 class AuthService {
-  // Esta es la URL que debes usar para el login
   final String baseUrl = "https://10.0.2.2:7000/gateway/auth";
   final _storage = const FlutterSecureStorage();
 
@@ -34,9 +33,6 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-        // DEBUG: Ver qué viene en data
-        print('RESPONSE DATA: $data');
-        print('nombreCompleto: ${data['nombreCompleto']}');
 
         // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
@@ -56,6 +52,14 @@ class AuthService {
           key: 'nombre_completo',
           value: data['nombreCompleto']?.toString() ?? '',
         );
+        await _storage.write(
+          key: 'identificacion',
+          value: data['identificacion']?.toString() ?? '',
+        );
+        await _storage.write(
+          key: 'clienteId',
+          value: data['clienteId']?.toString() ?? '',
+        );
 
         return loginData;
       } else {
@@ -67,14 +71,14 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    // Registrar en bitácora (Requerimiento AM2)
     print("BITÁCORA: Logout realizado. Limpiando credenciales.");
 
-    // Borramos solo los datos de sesión para NO borrar el "Recordarme"
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'expires_in');
     await _storage.delete(key: 'usuarioID');
     await _storage.delete(key: 'nombre_completo');
+    await _storage.delete(key: 'identificacion');
+    await _storage.delete(key: 'clienteId');
   }
 }
