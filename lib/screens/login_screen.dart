@@ -68,12 +68,12 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           await _storage.delete(key: 'remembered_email');
         }
-        Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
       UIUtils.showMsg(context, e.toString(), isError: true);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // FONDO: Solo gradiente azul para evitar errores de assets faltantes
+          // FONDO: Gradiente azul sólido
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // LOGO CIRCULAR
+                  // --- LOGO ARREGLADO ---
                   Hero(
                     tag: 'logo_cuc',
                     child: Container(
@@ -119,20 +119,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons
-                            .account_balance, // Icono de respaldo si no hay imagen
-                        size: 80,
-                        color: colorPrimario,
-                      ),
-                      /* // Descomenta esto cuando ya tengas el logo en assets/images/
                       child: Image.asset(
                         'assets/images/logo_cuc.png',
                         height: 100,
                         width: 100,
                         fit: BoxFit.contain,
+                        // Si la imagen falla, muestra este icono
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.account_balance,
+                            size: 80,
+                            color: colorPrimario,
+                          );
+                        },
                       ),
-                      */
                     ),
                   ),
                   const SizedBox(height: 15),

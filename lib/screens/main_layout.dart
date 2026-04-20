@@ -14,7 +14,6 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
-  // Usamos late para poder pasar 'onTransferirTap' a HomePage
   late final List<Widget> _screens = [
     HomePage(onTransferir: () => onTransferirTap()),
     const Center(child: Text("Pantalla Inscribir/Desinscribir")),
@@ -29,7 +28,6 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
-  // Método para que desde el Inicio se pueda saltar al tab de Transferir
   void onTransferirTap() {
     setState(() {
       _selectedIndex = 4;
@@ -42,7 +40,6 @@ class _MainLayoutState extends State<MainLayout> {
     const colorAcento = Color(0xFFF57C00);
 
     return Scaffold(
-      // 1. BARRA SUPERIOR ESTILIZADA
       appBar: AppBar(
         backgroundColor: colorPrimario,
         elevation: 4,
@@ -54,9 +51,17 @@ class _MainLayoutState extends State<MainLayout> {
               shape: BoxShape.circle,
             ),
             child: ClipOval(
+              // --- LOGO ARREGLADO CON ERROR BUILDER ---
               child: Image.asset(
                 'assets/images/logo_cuc.png',
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.account_balance,
+                    color: colorPrimario,
+                    size: 20,
+                  );
+                },
               ),
             ),
           ),
@@ -80,14 +85,12 @@ class _MainLayoutState extends State<MainLayout> {
               );
               if (confirm) {
                 await AuthService().logout();
-                Navigator.pushReplacementNamed(context, '/login');
+                if (mounted) Navigator.pushReplacementNamed(context, '/login');
               }
             },
           ),
         ],
       ),
-
-      // 2. CONTENIDO CON TRANSICIÓN SUAVE
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: Container(
@@ -96,17 +99,15 @@ class _MainLayoutState extends State<MainLayout> {
           child: _screens[_selectedIndex],
         ),
       ),
-
-      // 3. BARRA INFERIOR ALINEADA Y COMPLETA
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           indicatorColor: colorAcento.withOpacity(0.2),
           labelTextStyle: WidgetStateProperty.all(
             const TextStyle(
               fontSize: 9,
-              fontWeight: FontWeight.w600,
+              fontWeight:
+                  FontWeight.bold, // Un poco más grueso para que se lea mejor
               color: colorPrimario,
-              height: 1.1,
             ),
           ),
         ),
@@ -121,12 +122,12 @@ class _MainLayoutState extends State<MainLayout> {
             NavigationDestination(
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home, color: colorAcento),
-              label: 'Inicio\n ',
+              label: 'Inicio',
             ),
             NavigationDestination(
               icon: Icon(Icons.app_registration_outlined),
               selectedIcon: Icon(Icons.app_registration, color: colorAcento),
-              label: 'Inscribir/\nDesinscribir',
+              label: 'Inscribir',
             ),
             NavigationDestination(
               icon: Icon(Icons.account_balance_wallet_outlined),
@@ -134,17 +135,17 @@ class _MainLayoutState extends State<MainLayout> {
                 Icons.account_balance_wallet,
                 color: colorAcento,
               ),
-              label: 'Ver saldo\n ',
+              label: 'Saldo',
             ),
             NavigationDestination(
               icon: Icon(Icons.history_outlined),
               selectedIcon: Icon(Icons.history, color: colorAcento),
-              label: 'ver\nmovimientos',
+              label: 'Movimientos',
             ),
             NavigationDestination(
               icon: Icon(Icons.send_outlined),
               selectedIcon: Icon(Icons.send, color: colorAcento),
-              label: 'realizar\ntransferencia',
+              label: 'Transferir',
             ),
           ],
         ),
