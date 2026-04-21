@@ -33,16 +33,32 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-        // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
-        await _storage.write(key: 'refresh_token', value: loginData.refreshToken);
-        await _storage.write(key: 'expires_in', value: loginData.expiresIn.toString());
-        await _storage.write(key: 'usuarioID', value: loginData.usuarioID.toString());
-        await _storage.write(key: 'nombre_completo', value: data['nombreCompleto']?.toString() ?? '');
-        await _storage.write(key: 'identificacion', value: data['identificacion']?.toString() ?? '');
-        await _storage.write(key: 'clienteId', value: data['clienteId']?.toString() ?? '');
+        await _storage.write(
+          key: 'refresh_token',
+          value: loginData.refreshToken,
+        );
+        await _storage.write(
+          key: 'expires_in',
+          value: loginData.expiresIn.toString(),
+        );
+        await _storage.write(
+          key: 'usuarioID',
+          value: loginData.usuarioID.toString(),
+        );
+        await _storage.write(
+          key: 'nombre_completo',
+          value: data['nombreCompleto']?.toString() ?? '',
+        );
+        await _storage.write(
+          key: 'identificacion',
+          value: data['identificacion']?.toString() ?? '',
+        );
+        await _storage.write(
+          key: 'clienteId',
+          value: data['clienteId']?.toString() ?? '',
+        );
 
-        // Consultar el teléfono del usuario por su ID
         try {
           final userResp = await client.get(
             Uri.parse('https://10.0.2.2:7154/user/${loginData.usuarioID}'),
@@ -51,15 +67,32 @@ class AuthService {
               'Authorization': 'Bearer ${loginData.accessToken}',
             },
           );
+
           print('User endpoint status: ${userResp.statusCode}');
           print('User endpoint body: ${userResp.body}');
+
           if (userResp.statusCode == 200) {
             final userData = jsonDecode(userResp.body);
-            final telefono = userData['telefono']
-                ?? userData['datos']?['telefono']
-                ?? '';
+
+            final telefono =
+                userData['telefono'] ?? userData['datos']?['telefono'] ?? '';
+
+            final identificacion =
+                userData['identificacion'] ??
+                userData['datos']?['identificacion'] ??
+                '';
+
             print('Teléfono obtenido: $telefono');
+            print('Identificación obtenida: $identificacion');
+
             await _storage.write(key: 'telefono', value: telefono.toString());
+
+            if (identificacion.toString().trim().isNotEmpty) {
+              await _storage.write(
+                key: 'identificacion',
+                value: identificacion.toString(),
+              );
+            }
           }
         } catch (e) {
           print('No se pudo obtener teléfono del usuario: $e');

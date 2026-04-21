@@ -72,27 +72,42 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
 
       final client = _httpClient;
       final resp = await client.get(
-        Uri.parse(
-            'https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
+        Uri.parse('https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
-
       if (resp.statusCode == 200) {
+        if (resp.body.trim().isEmpty) {
+          setState(() {
+            _cuentas = [];
+            _cargando = false;
+          });
+          return;
+        }
+
         final body = jsonDecode(resp.body);
-        final List<dynamic> datos = body['datos'] ?? body;
+        final List<dynamic> datos = body is Map ? (body['datos'] ?? []) : body;
+
         setState(() {
           _cuentas = datos.map((e) => AccountItem.fromJson(e)).toList();
           _cargando = false;
         });
       } else {
-        final data = jsonDecode(resp.body);
+        String mensajeError = 'Error al obtener cuentas (${resp.statusCode})';
+        if (resp.body.trim().isNotEmpty) {
+          try {
+            final data = jsonDecode(resp.body);
+            mensajeError = data['descripcion'] ?? mensajeError;
+          } catch (_) {
+            mensajeError = 'Error ${resp.statusCode}: ${resp.body}';
+          }
+        }
+
         setState(() {
-          _errorCarga =
-              data['descripcion'] ?? 'Error al obtener cuentas (${resp.statusCode})';
+          _errorCarga = mensajeError;
           _cargando = false;
         });
       }
@@ -145,23 +160,33 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         body: bodyJson,
       );
 
+      Map<String, dynamic> data = {};
+      if (resp.body.trim().isNotEmpty) {
+        try {
+          data = jsonDecode(resp.body);
+        } catch (_) {}
+      }
+
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         _telefonoCtrl.clear();
         setState(() => _cuentaSeleccionada = null);
+
         if (mounted) {
           UIUtils.showMsg(
             context,
-            _modoInscripcion ? 'Inscripción exitosa' : 'Desinscripción exitosa',
+            _modoInscripcion
+                ? 'Inscripción exitosa'
+                : 'Desinscripción exitosa',
           );
         }
       } else {
         String mensaje = 'Error al procesar la $accion (${resp.statusCode})';
-        try {
-          final data = jsonDecode(resp.body);
+
+        if (data.isNotEmpty) {
           mensaje = data['descripcion'] ?? data['message'] ?? mensaje;
-        } catch (_) {
-          // El backend devolvió texto plano (ej. stack trace de .NET)
+        } else {
           final body = resp.body.trim();
+
           if (body.contains('duplicate key') || body.contains('UNIQUE KEY')) {
             mensaje = _modoInscripcion
                 ? 'Este teléfono ya está inscrito en el servicio.'
@@ -171,9 +196,11 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
               body.contains('EntityFramework')) {
             mensaje = 'Error interno del servidor. Intente más tarde.';
           } else if (body.isNotEmpty) {
-            mensaje = body.length > 120 ? '${body.substring(0, 120)}...' : body;
+            mensaje =
+                body.length > 120 ? '${body.substring(0, 120)}...' : body;
           }
         }
+
         if (mounted) {
           UIUtils.showMsg(context, mensaje, isError: true);
         }
@@ -231,7 +258,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
             ),
             const SizedBox(height: 16),
 
-            // Toggle Inscribir / Desinscribir
             SegmentedButton<bool>(
               segments: const [
                 ButtonSegment(
@@ -276,7 +302,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
             ),
             const SizedBox(height: 24),
 
-            // Dropdown de cuentas
             if (_cuentas.isEmpty)
               Card(
                 child: Padding(
@@ -313,12 +338,12 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                     )
                     .toList(),
                 onChanged: (val) => setState(() => _cuentaSeleccionada = val),
-                validator: (_) =>
-                    _cuentaSeleccionada == null ? 'Seleccione una cuenta' : null,
+                validator: (_) => _cuentaSeleccionada == null
+                    ? 'Seleccione una cuenta'
+                    : null,
               ),
               const SizedBox(height: 16),
 
-              // Teléfono
               TextFormField(
                 controller: _telefonoCtrl,
                 keyboardType: TextInputType.phone,
@@ -364,7 +389,9 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                   label: Text(
                     _procesando
                         ? 'Procesando...'
-                        : (_modoInscripcion ? 'Inscribirse' : 'Desinscribirse'),
+                        : (_modoInscripcion
+                            ? 'Inscribirse'
+                            : 'Desinscribirse'),
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
