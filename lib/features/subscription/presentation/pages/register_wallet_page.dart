@@ -145,8 +145,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         body: bodyJson,
       );
 
-      final data = jsonDecode(resp.body);
-
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         _telefonoCtrl.clear();
         setState(() => _cuentaSeleccionada = null);
@@ -157,8 +155,25 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
           );
         }
       } else {
-        final mensaje =
-            data['descripcion'] ?? 'Error al procesar la $accion';
+        String mensaje = 'Error al procesar la $accion (${resp.statusCode})';
+        try {
+          final data = jsonDecode(resp.body);
+          mensaje = data['descripcion'] ?? data['message'] ?? mensaje;
+        } catch (_) {
+          // El backend devolvió texto plano (ej. stack trace de .NET)
+          final body = resp.body.trim();
+          if (body.contains('duplicate key') || body.contains('UNIQUE KEY')) {
+            mensaje = _modoInscripcion
+                ? 'Este teléfono ya está inscrito en el servicio.'
+                : 'Este teléfono no está inscrito o ya fue desinscrito.';
+          } else if (body.contains('SqlException') ||
+              body.contains('DbUpdateException') ||
+              body.contains('EntityFramework')) {
+            mensaje = 'Error interno del servidor. Intente más tarde.';
+          } else if (body.isNotEmpty) {
+            mensaje = body.length > 120 ? '${body.substring(0, 120)}...' : body;
+          }
+        }
         if (mounted) {
           UIUtils.showMsg(context, mensaje, isError: true);
         }
@@ -293,9 +308,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                     .map(
                       (c) => DropdownMenuItem(
                         value: c,
-                        child: Text(
-                          '${c.numeroCuenta}  —  ₡${c.saldo.toStringAsFixed(2)}',
-                        ),
+                        child: Text(c.numeroCuenta),
                       ),
                     )
                     .toList(),
