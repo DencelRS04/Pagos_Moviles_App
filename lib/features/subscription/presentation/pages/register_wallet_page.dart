@@ -72,14 +72,12 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
 
       final client = _httpClient;
       final resp = await client.get(
-        Uri.parse(
-            'https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
+        Uri.parse('https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
-
 
       if (resp.statusCode == 200) {
         if (resp.body.trim().isEmpty) {
@@ -89,8 +87,10 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
           });
           return;
         }
+
         final body = jsonDecode(resp.body);
         final List<dynamic> datos = body is Map ? (body['datos'] ?? []) : body;
+
         setState(() {
           _cuentas = datos.map((e) => AccountItem.fromJson(e)).toList();
           _cargando = false;
@@ -105,6 +105,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
             mensajeError = 'Error ${resp.statusCode}: ${resp.body}';
           }
         }
+
         setState(() {
           _errorCarga = mensajeError;
           _cargando = false;
@@ -169,15 +170,37 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         _telefonoCtrl.clear();
         setState(() => _cuentaSeleccionada = null);
+
         if (mounted) {
           UIUtils.showMsg(
             context,
-            _modoInscripcion ? 'Inscripción exitosa' : 'Desinscripción exitosa',
+            _modoInscripcion
+                ? 'Inscripción exitosa'
+                : 'Desinscripción exitosa',
           );
         }
       } else {
-        final mensaje =
-            data['descripcion'] as String? ?? 'Error al procesar la $accion (${resp.statusCode})';
+        String mensaje = 'Error al procesar la $accion (${resp.statusCode})';
+
+        if (data.isNotEmpty) {
+          mensaje = data['descripcion'] ?? data['message'] ?? mensaje;
+        } else {
+          final body = resp.body.trim();
+
+          if (body.contains('duplicate key') || body.contains('UNIQUE KEY')) {
+            mensaje = _modoInscripcion
+                ? 'Este teléfono ya está inscrito en el servicio.'
+                : 'Este teléfono no está inscrito o ya fue desinscrito.';
+          } else if (body.contains('SqlException') ||
+              body.contains('DbUpdateException') ||
+              body.contains('EntityFramework')) {
+            mensaje = 'Error interno del servidor. Intente más tarde.';
+          } else if (body.isNotEmpty) {
+            mensaje =
+                body.length > 120 ? '${body.substring(0, 120)}...' : body;
+          }
+        }
+
         if (mounted) {
           UIUtils.showMsg(context, mensaje, isError: true);
         }
@@ -235,7 +258,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
             ),
             const SizedBox(height: 16),
 
-            // Toggle Inscribir / Desinscribir
             SegmentedButton<bool>(
               segments: const [
                 ButtonSegment(
@@ -280,7 +302,6 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
             ),
             const SizedBox(height: 24),
 
-            // Dropdown de cuentas
             if (_cuentas.isEmpty)
               Card(
                 child: Padding(
@@ -312,19 +333,17 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                     .map(
                       (c) => DropdownMenuItem(
                         value: c,
-                        child: Text(
-                          '${c.numeroCuenta}  —  ₡${c.saldo.toStringAsFixed(2)}',
-                        ),
+                        child: Text(c.numeroCuenta),
                       ),
                     )
                     .toList(),
                 onChanged: (val) => setState(() => _cuentaSeleccionada = val),
-                validator: (_) =>
-                    _cuentaSeleccionada == null ? 'Seleccione una cuenta' : null,
+                validator: (_) => _cuentaSeleccionada == null
+                    ? 'Seleccione una cuenta'
+                    : null,
               ),
               const SizedBox(height: 16),
 
-              // Teléfono
               TextFormField(
                 controller: _telefonoCtrl,
                 keyboardType: TextInputType.phone,
@@ -370,7 +389,9 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                   label: Text(
                     _procesando
                         ? 'Procesando...'
-                        : (_modoInscripcion ? 'Inscribirse' : 'Desinscribirse'),
+                        : (_modoInscripcion
+                            ? 'Inscribirse'
+                            : 'Desinscribirse'),
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
