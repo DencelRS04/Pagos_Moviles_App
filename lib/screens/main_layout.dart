@@ -4,6 +4,7 @@ import '../widgets/ui_utils.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/transfer/presentation/pages/transfer_page.dart';
 import '../features/subscription/presentation/pages/register_wallet_page.dart';
+import '../features/balance/presentation/pages/balance_page.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -16,11 +17,11 @@ class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
   late final List<Widget> _screens = [
-  HomePage(onTransferir: () => onTransferirTap()),
-  const RegisterWalletPage(),
-  const Center(child: Text("Saldo Actual")),
-  const Center(child: Text("Historial de Movimientos")),
-  const TransferPage(),
+    HomePage(onTransferir: () => onTransferirTap()),
+    const RegisterWalletPage(),
+    const BalancePage(),
+    const Center(child: Text("Historial de Movimientos")),
+    const TransferPage(),
   ];
 
   void _onItemTapped(int index) {
