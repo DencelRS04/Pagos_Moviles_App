@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
     final token = await _storage.read(key: 'access_token');
     final usuarioIdStr = await _storage.read(key: 'usuarioID');
     final nombreGuardado = await _storage.read(key: 'nombre_completo');
+    final telefonoGuardado = await _storage.read(key: 'telefono');
 
     if (token == null || usuarioIdStr == null) {
       setState(() {
@@ -63,10 +64,44 @@ class _HomePageState extends State<HomePage> {
     // El nombre viene guardado desde el login
     _nombreUsuario = nombreGuardado ?? 'Usuario';
 
-    setState(() {
-      _cuentas = [];
-      _cargando = false;
-    });
+    // Si tiene teléfono, intentar cargar cuentas
+    if (telefonoGuardado != null && telefonoGuardado.isNotEmpty) {
+      try {
+        final clienteCuentas = _httpClient;
+        final respCuentas = await clienteCuentas.get(
+          Uri.parse('https://10.0.2.2:7143/accounts/transactions/$telefonoGuardado'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        );
+
+        if (respCuentas.statusCode == 200) {
+          final data = jsonDecode(respCuentas.body);
+          final afiliacion = data['datos']?['afiliacion'];
+          setState(() {
+            _cuentas = afiliacion != null ? [afiliacion] : [];
+            _cargando = false;
+          });
+        } else {
+          setState(() {
+            _cuentas = [];
+            _cargando = false;
+          });
+        }
+      } catch (e) {
+        print('Error al cargar cuentas: $e');
+        setState(() {
+          _cuentas = [];
+          _cargando = false;
+        });
+      }
+    } else {
+      setState(() {
+        _cuentas = [];
+        _cargando = false;
+      });
+    }
   } catch (e) {
     setState(() {
       _error = 'Error al cargar datos: $e';
@@ -74,6 +109,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 }
+
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
