@@ -82,17 +82,31 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
 
 
       if (resp.statusCode == 200) {
+        if (resp.body.trim().isEmpty) {
+          setState(() {
+            _cuentas = [];
+            _cargando = false;
+          });
+          return;
+        }
         final body = jsonDecode(resp.body);
-        final List<dynamic> datos = body['datos'] ?? body;
+        final List<dynamic> datos = body is Map ? (body['datos'] ?? []) : body;
         setState(() {
           _cuentas = datos.map((e) => AccountItem.fromJson(e)).toList();
           _cargando = false;
         });
       } else {
-        final data = jsonDecode(resp.body);
+        String mensajeError = 'Error al obtener cuentas (${resp.statusCode})';
+        if (resp.body.trim().isNotEmpty) {
+          try {
+            final data = jsonDecode(resp.body);
+            mensajeError = data['descripcion'] ?? mensajeError;
+          } catch (_) {
+            mensajeError = 'Error ${resp.statusCode}: ${resp.body}';
+          }
+        }
         setState(() {
-          _errorCarga =
-              data['descripcion'] ?? 'Error al obtener cuentas (${resp.statusCode})';
+          _errorCarga = mensajeError;
           _cargando = false;
         });
       }
@@ -145,7 +159,12 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         body: bodyJson,
       );
 
-      final data = jsonDecode(resp.body);
+      Map<String, dynamic> data = {};
+      if (resp.body.trim().isNotEmpty) {
+        try {
+          data = jsonDecode(resp.body);
+        } catch (_) {}
+      }
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         _telefonoCtrl.clear();
@@ -158,7 +177,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         }
       } else {
         final mensaje =
-            data['descripcion'] ?? 'Error al procesar la $accion';
+            data['descripcion'] as String? ?? 'Error al procesar la $accion (${resp.statusCode})';
         if (mounted) {
           UIUtils.showMsg(context, mensaje, isError: true);
         }
