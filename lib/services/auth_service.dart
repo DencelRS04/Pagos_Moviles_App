@@ -33,33 +33,37 @@ class AuthService {
       if (response.statusCode == 201) {
         final loginData = LoginResponse.fromJson(data);
 
-
         // GUARDAR LOS VALORES DE SESIÓN
         await _storage.write(key: 'access_token', value: loginData.accessToken);
-        await _storage.write(
-          key: 'refresh_token',
-          value: loginData.refreshToken,
-        );
-        await _storage.write(
-          key: 'expires_in',
-          value: loginData.expiresIn.toString(),
-        );
-        await _storage.write(
-          key: 'usuarioID',
-          value: loginData.usuarioID.toString(),
-        );
-        await _storage.write(
-          key: 'nombre_completo',
-          value: data['nombreCompleto']?.toString() ?? '',
-        );
-        await _storage.write(
-          key: 'identificacion',
-          value: data['identificacion']?.toString() ?? '',
-        );
-        await _storage.write(
-          key: 'clienteId',
-          value: data['clienteId']?.toString() ?? '',
-        );
+        await _storage.write(key: 'refresh_token', value: loginData.refreshToken);
+        await _storage.write(key: 'expires_in', value: loginData.expiresIn.toString());
+        await _storage.write(key: 'usuarioID', value: loginData.usuarioID.toString());
+        await _storage.write(key: 'nombre_completo', value: data['nombreCompleto']?.toString() ?? '');
+        await _storage.write(key: 'identificacion', value: data['identificacion']?.toString() ?? '');
+        await _storage.write(key: 'clienteId', value: data['clienteId']?.toString() ?? '');
+
+        // Consultar el teléfono del usuario por su ID
+        try {
+          final userResp = await client.get(
+            Uri.parse('https://10.0.2.2:7154/user/${loginData.usuarioID}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${loginData.accessToken}',
+            },
+          );
+          print('User endpoint status: ${userResp.statusCode}');
+          print('User endpoint body: ${userResp.body}');
+          if (userResp.statusCode == 200) {
+            final userData = jsonDecode(userResp.body);
+            final telefono = userData['telefono']
+                ?? userData['datos']?['telefono']
+                ?? '';
+            print('Teléfono obtenido: $telefono');
+            await _storage.write(key: 'telefono', value: telefono.toString());
+          }
+        } catch (e) {
+          print('No se pudo obtener teléfono del usuario: $e');
+        }
 
         return loginData;
       } else {
@@ -78,6 +82,7 @@ class AuthService {
     await _storage.delete(key: 'expires_in');
     await _storage.delete(key: 'usuarioID');
     await _storage.delete(key: 'nombre_completo');
+    await _storage.delete(key: 'telefono');
     await _storage.delete(key: 'identificacion');
     await _storage.delete(key: 'clienteId');
   }

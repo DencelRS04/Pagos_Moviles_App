@@ -51,8 +51,11 @@ class _TransferPageState extends State<TransferPage> {
   Future<void> _cargarDatosSesion() async {
     try {
       final nombreGuardado = await _storage.read(key: 'nombre_completo');
+      final telefonoGuardado = await _storage.read(key: 'telefono');
+      
       setState(() {
         _nombreOrigen = nombreGuardado ?? '';
+        _telefonoOrigenCtrl.text = telefonoGuardado ?? '';
         _cargandoSesion = false;
       });
     } catch (e) {
@@ -143,28 +146,19 @@ class _TransferPageState extends State<TransferPage> {
             ),
             const SizedBox(height: 20),
 
-            // Teléfono origen (ahora editable)
+            // Teléfono origen (solo lectura)
             TextFormField(
               controller: _telefonoOrigenCtrl,
-              keyboardType: TextInputType.phone,
-              maxLength: 8,
+              readOnly: true,
               decoration: InputDecoration(
                 labelText: 'Teléfono origen',
                 prefixIcon: const Icon(Icons.phone),
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) {
-                  return 'El teléfono origen es requerido';
-                }
-                final regex = RegExp(r'^(?:2|4|5|6|7|8)\d{7}$');
-                if (!regex.hasMatch(val.trim())) {
-                  return 'Teléfono inválido (8 dígitos, inicia en 2,4,5,6,7 u 8)';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 14),
 
