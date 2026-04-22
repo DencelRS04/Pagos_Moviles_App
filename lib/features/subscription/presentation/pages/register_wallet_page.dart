@@ -72,7 +72,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
 
       final client = _httpClient;
       final resp = await client.get(
-        Uri.parse('https://10.0.2.2:7191/core/accounts/cliente/$_clienteId'),
+        Uri.parse('https://10.0.2.2:7000/gateway/admin/core/accounts/cliente/$_clienteId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

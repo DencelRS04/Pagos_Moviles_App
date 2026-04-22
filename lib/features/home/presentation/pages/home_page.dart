@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
       try {
         final clienteCuentas = _httpClient;
         final respCuentas = await clienteCuentas.get(
-          Uri.parse('https://10.0.2.2:7143/accounts/transactions/$telefonoGuardado'),
+          Uri.parse('https://10.0.2.2:7000/gateway/admin/accounts/transactions/$telefonoGuardado'),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',

@@ -61,7 +61,7 @@ class AuthService {
 
         try {
           final userResp = await client.get(
-            Uri.parse('https://10.0.2.2:7154/user/${loginData.usuarioID}'),
+            Uri.parse('https://10.0.2.2:7000/gateway/admin/user/${loginData.usuarioID}'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ${loginData.accessToken}',
