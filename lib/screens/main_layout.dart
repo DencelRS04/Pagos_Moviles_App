@@ -53,7 +53,6 @@ class _MainLayoutState extends State<MainLayout> {
               shape: BoxShape.circle,
             ),
             child: ClipOval(
-              // --- LOGO ARREGLADO CON ERROR BUILDER ---
               child: Image.asset(
                 'assets/images/logo_cuc.png',
                 fit: BoxFit.contain,
@@ -106,10 +105,11 @@ class _MainLayoutState extends State<MainLayout> {
           indicatorColor: colorAcento.withOpacity(0.2),
           labelTextStyle: WidgetStateProperty.all(
             const TextStyle(
-              fontSize: 9,
-              fontWeight:
-                  FontWeight.bold, // Un poco más grueso para que se lea mejor
+              fontSize:
+                  8.5, // Reducido un poco para que quepa bien el texto largo
+              fontWeight: FontWeight.bold,
               color: colorPrimario,
+              height: 1.2, // Espaciado entre líneas
             ),
           ),
         ),
@@ -118,18 +118,20 @@ class _MainLayoutState extends State<MainLayout> {
           onDestinationSelected: _onItemTapped,
           backgroundColor: Colors.white,
           elevation: 15,
-          height: 80,
+          height:
+              90, // Aumentado ligeramente para dar aire a las dos líneas de texto
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home, color: colorAcento),
-              label: 'Inicio',
+              label:
+                  'Inicio\n ', // El espacio después del \n mantiene la altura
             ),
             NavigationDestination(
               icon: Icon(Icons.app_registration_outlined),
               selectedIcon: Icon(Icons.app_registration, color: colorAcento),
-              label: 'Inscribir',
+              label: 'Inscribir/\nDesinscribir',
             ),
             NavigationDestination(
               icon: Icon(Icons.account_balance_wallet_outlined),
@@ -137,17 +139,17 @@ class _MainLayoutState extends State<MainLayout> {
                 Icons.account_balance_wallet,
                 color: colorAcento,
               ),
-              label: 'Saldo',
+              label: 'Ver\nSaldo',
             ),
             NavigationDestination(
               icon: Icon(Icons.history_outlined),
               selectedIcon: Icon(Icons.history, color: colorAcento),
-              label: 'Movimientos',
+              label: 'Ver\nMovimientos',
             ),
             NavigationDestination(
               icon: Icon(Icons.send_outlined),
               selectedIcon: Icon(Icons.send, color: colorAcento),
-              label: 'Transferir',
+              label: 'Realizar\nTransferencia',
             ),
           ],
         ),
