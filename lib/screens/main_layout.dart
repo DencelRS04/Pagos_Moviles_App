@@ -5,6 +5,7 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/transfer/presentation/pages/transfer_page.dart';
 import '../features/subscription/presentation/pages/register_wallet_page.dart';
 import '../features/balance/presentation/pages/balance_page.dart';
+import '../features/movements/presentation/pages/movements_page.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -20,7 +21,7 @@ class _MainLayoutState extends State<MainLayout> {
     HomePage(onTransferir: () => onTransferirTap()),
     const RegisterWalletPage(),
     const BalancePage(),
-    const Center(child: Text("Historial de Movimientos")),
+    const MovementsPage(),
     const TransferPage(),
   ];
 
