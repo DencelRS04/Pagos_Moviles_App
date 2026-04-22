@@ -148,7 +148,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
       final client = _httpClient;
 
       final url = _modoInscripcion
-          ? 'https://10.0.2.2:7154/pagomovil/inscribir'
+          ? 'https://10.0.2.2:7000/gateway/auth/register'
           : 'https://10.0.2.2:7000/gateway/admin/core/accounts/unsubscribe';
 
       final resp = await client.post(
@@ -174,9 +174,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
         if (mounted) {
           UIUtils.showMsg(
             context,
-            _modoInscripcion
-                ? 'Inscripción exitosa'
-                : 'Desinscripción exitosa',
+            _modoInscripcion ? 'Inscripción exitosa' : 'Desinscripción exitosa',
           );
         }
       } else {
@@ -196,8 +194,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
               body.contains('EntityFramework')) {
             mensaje = 'Error interno del servidor. Intente más tarde.';
           } else if (body.isNotEmpty) {
-            mensaje =
-                body.length > 120 ? '${body.substring(0, 120)}...' : body;
+            mensaje = body.length > 120 ? '${body.substring(0, 120)}...' : body;
           }
         }
 
@@ -389,9 +386,7 @@ class _RegisterWalletPageState extends State<RegisterWalletPage> {
                   label: Text(
                     _procesando
                         ? 'Procesando...'
-                        : (_modoInscripcion
-                            ? 'Inscribirse'
-                            : 'Desinscribirse'),
+                        : (_modoInscripcion ? 'Inscribirse' : 'Desinscribirse'),
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
