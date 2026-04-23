@@ -100,7 +100,6 @@ class _TransferPageState extends State<TransferPage> {
       final data = jsonDecode(resp.body);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        _telefonoOrigenCtrl.clear();
         _telefonoDestinoCtrl.clear();
         _montoCtrl.clear();
         _descripcionCtrl.clear();
